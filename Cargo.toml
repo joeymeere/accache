@@ -33,6 +33,7 @@ thiserror = "1"
 parking_lot = "0.12"
 log = "0.4"
 bs58 = "0.5"
+indexmap = "2"
 clap = { version = "4", features = ["derive"], optional = true }
 env_logger = { version = "0.11", optional = true }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"], optional = true }

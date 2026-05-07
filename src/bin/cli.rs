@@ -266,7 +266,7 @@ fn cmd_inspect(args: InspectArgs) -> accache::Result<()> {
 }
 
 fn cmd_merge(args: MergeArgs) -> accache::Result<()> {
-    let mut by_key: std::collections::HashMap<[u8; 32], Entry> = std::collections::HashMap::new();
+    let mut by_key: indexmap::IndexMap<[u8; 32], Entry> = indexmap::IndexMap::new();
     for path in &args.files {
         let (_, entries) = read_file(path)?;
         for e in entries {

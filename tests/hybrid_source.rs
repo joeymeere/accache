@@ -273,6 +273,30 @@ fn rpc_account_not_found_returns_typed_error() {
 }
 
 #[test]
+fn persisted_file_preserves_request_order() {
+    let server = MockServer::start();
+    // Request pubkeys in a deliberately non-sorted, non-hash-sorted order. The
+    // persisted .acc file should iterate back in this exact order.
+    let kas: Vec<KeyedAccount> = [42, 7, 200, 1, 99, 33].iter().map(|s| keyed(*s)).collect();
+    let _m = mount_get_multiple(&server, &kas);
+
+    let dir = tempfile::tempdir().unwrap();
+    let outfile = dir.path().join("ordered.acc");
+    let acc = Accache::builder()
+        .with_rpc(server.base_url())
+        .outfile(&outfile)
+        .build()
+        .unwrap();
+    let pks: Vec<Pubkey> = kas.iter().map(|k| k.key).collect();
+    let _ = acc.get_multiple(&pks).unwrap();
+    acc.flush().unwrap();
+
+    let (_, persisted) = accache::format::read_file(&outfile).unwrap();
+    let persisted_keys: Vec<Pubkey> = persisted.iter().map(|e| e.pubkey()).collect();
+    assert_eq!(persisted_keys, pks);
+}
+
+#[test]
 fn get_multiple_skips_rpc_when_all_cached() {
     let server = MockServer::start();
     let m = mount_get_multiple(&server, &[]);

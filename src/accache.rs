@@ -1,8 +1,8 @@
-use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+use indexmap::IndexMap;
 use parking_lot::RwLock;
 use solana_account::Account;
 use solana_pubkey::Pubkey;
@@ -18,7 +18,7 @@ use crate::rpc::blocking::RpcFetcher;
 
 #[derive(Debug, Default)]
 pub(crate) struct AccacheInner {
-    pub entries: HashMap<Pubkey, (Account, Option<u64>)>, // (account, fetched_at_unix_ms)
+    pub entries: IndexMap<Pubkey, (Account, Option<u64>)>, // (account, fetched_at_unix_ms)
 }
 
 /// Sync (blocking) cache. Cheap to clone via `Arc<RwLock<...>>`.
@@ -119,7 +119,7 @@ impl Accache {
             .inner
             .write()
             .entries
-            .remove(key)
+            .shift_remove(key)
             .map(|(a, _)| KeyedAccount::new(*key, a));
         if res.is_some() {
             self.maybe_persist();
@@ -196,7 +196,7 @@ impl Accache {
             if let Some(account) = maybe {
                 g.entries.insert(key, (account, Some(now)));
             } else {
-                g.entries.remove(&key);
+                g.entries.shift_remove(&key);
             }
         }
         drop(g);

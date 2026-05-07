@@ -23,6 +23,7 @@ dependencies = [
  "env_logger",
  "hex",
  "httpmock",
+ "indexmap",
  "log",
  "mollusk-svm",
  "parking_lot",

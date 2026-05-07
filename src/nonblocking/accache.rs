@@ -1,8 +1,8 @@
-use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+use indexmap::IndexMap;
 use parking_lot::RwLock;
 use solana_account::Account;
 use solana_pubkey::Pubkey;
@@ -16,7 +16,7 @@ use crate::source::{AccacheBuilder, Source};
 
 #[derive(Debug, Default)]
 struct AccacheInner {
-    entries: HashMap<Pubkey, (Account, Option<u64>)>,
+    entries: IndexMap<Pubkey, (Account, Option<u64>)>,
 }
 
 /// Async variant of [`crate::Accache`]. Same surface, `async fn`s.
@@ -100,7 +100,7 @@ impl Accache {
             .inner
             .write()
             .entries
-            .remove(key)
+            .shift_remove(key)
             .map(|(a, _)| KeyedAccount::new(*key, a));
         if res.is_some() && self.config.auto_persist {
             let _ = self.flush();
@@ -212,7 +212,7 @@ impl Accache {
             if let Some(account) = maybe {
                 g.entries.insert(key, (account, Some(now)));
             } else {
-                g.entries.remove(&key);
+                g.entries.shift_remove(&key);
             }
         }
         drop(g);
